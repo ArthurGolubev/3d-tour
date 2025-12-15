@@ -1,0 +1,5 @@
+apiVersion: v2
+name: test-3d-tour
+description: Helm chart for deploying 3d-tour service
+type: application
+version: 0.1.0
