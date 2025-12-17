@@ -3,7 +3,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   // Base path for the application. 
   // Should be '/' for Vercel deployment if at the root.
-  base: '/',
+  // Base path for the application. 
+  // Should be '/' for Vercel deployment if at the root.
+  base: '/3d-tour/',
   build: {
     // Output directory for the build
     outDir: 'dist',

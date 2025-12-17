@@ -11,6 +11,7 @@ import './style.css';
 import './loader.css';
 
 const container = document.querySelector('#viewer') as HTMLElement;
+const loadingStartTime = Date.now();
 
 const viewer = new Viewer({
   container: container,
@@ -29,7 +30,7 @@ const viewer = new Viewer({
           const div = document.createElement('div');
           div.className = 'transition-marker';
           div.innerHTML = `
-            <img src="/assets/icons/marker-arrow-up.svg" alt="Arrow Up" width="27" height="37" />
+            <img src="assets/icons/marker-arrow-up.svg" alt="Arrow Up" width="27" height="37" />
           `;
           return div;
         },
@@ -88,7 +89,13 @@ viewer.addEventListener('ready', () => {
   
   const loader = document.querySelector('#loader-container');
   if (loader) {
-    loader.classList.add('hidden');
+    const elapsedTime = Date.now() - loadingStartTime;
+    const minDuration = 2000; // 2 seconds minimum
+    const remainingTime = Math.max(0, minDuration - elapsedTime);
+
+    setTimeout(() => {
+        loader.classList.add('hidden');
+    }, remainingTime);
   }
 });
 
@@ -149,7 +156,12 @@ const btnScreenshot = document.getElementById('btn-screenshot');
 
 if (btnFullscreen) {
   btnFullscreen.addEventListener('click', () => {
-    viewer.toggleFullscreen();
+    const wrapper = document.getElementById('tour-wrapper');
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else if (wrapper) {
+      wrapper.requestFullscreen();
+    }
   });
 }
 
@@ -301,7 +313,7 @@ import { VariantSelector } from './components/variant-selector';
 import { SceneConfig, LocationGroup, VariantConfig } from './data/tour-config';
 
 const variantSelector = new VariantSelector({
-  container: document.getElementById('viewer') as HTMLElement,
+  container: document.getElementById('tour-wrapper') as HTMLElement,
   onSceneSelect: (scene: SceneConfig, allScenes: SceneConfig[], variant?: VariantConfig) => {
     currentSceneConfigs = allScenes; // Store for default yaw/pitch lookup
     virtualTour.setNodes(
@@ -327,9 +339,9 @@ let currentLocationId = 'yard'; // Default active location
 
 // SVG icons for each location
 const locationIcons: Record<string, string> = {
-  yard: `<img src="/assets/icons/beach.svg" alt="Двор" width="24" height="24" />`,
-  rooms: `<img src="/assets/icons/sofa.svg" alt="Номера" width="24" height="24" />`,
-  views: `<img src="/assets/icons/window.svg" alt="Виды из окон" width="24" height="24" />`,
+  yard: `<img src="assets/icons/beach.svg" alt="Двор" width="24" height="24" />`,
+  rooms: `<img src="assets/icons/sofa.svg" alt="Номера" width="24" height="24" />`,
+  views: `<img src="assets/icons/window.svg" alt="Виды из окон" width="24" height="24" />`,
 };
 
 // Render the navigation (main button shows current, list shows others)

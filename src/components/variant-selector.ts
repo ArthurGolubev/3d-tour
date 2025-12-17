@@ -26,7 +26,7 @@ export class VariantSelector {
     this.variantButton.innerHTML = `
       <span class="variant-name"></span>
       <span class="variant-icon">
-        <img src="/assets/icons/dots-menu.svg" alt="Variant Icon" />
+        <img src="assets/icons/dots-menu.svg" alt="Variant Icon" />
       </span>
     `;
     this.variantButton.addEventListener('click', () => this.openVariantModal());
@@ -57,7 +57,7 @@ export class VariantSelector {
     this.modalOverlay.querySelector('.variant-modal-close')?.addEventListener('click', () => this.closeModal());
     this.modalOverlay.querySelector('.variant-back-btn')?.addEventListener('click', () => this.openVariantModal());
     
-    document.body.appendChild(this.modalOverlay);
+    this.container.appendChild(this.modalOverlay);
   }
 
   public setLocationGroup(group: LocationGroup) {
@@ -127,7 +127,9 @@ export class VariantSelector {
       grid.innerHTML = '';
       grid.className = 'variant-grid scenes-mode'; // Add class for styling
       
-      variant.scenes.forEach(scene => {
+      const visibleScenes = variant.scenes.filter(s => !s.hideInModal);
+      
+      visibleScenes.forEach(scene => {
         const card = document.createElement('div');
         card.className = 'scene-card';
         card.innerHTML = `
