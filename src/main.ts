@@ -216,66 +216,64 @@ if (mapClose && mapPanel) {
 
 if (btnScreenshot) {
   btnScreenshot.addEventListener('click', () => {
-    // Force a render update before capturing
-    viewer.needsUpdate();
-    
-    // Use requestAnimationFrame to ensure the render is complete
-    requestAnimationFrame(() => {
-      // Get the canvas from the viewer container
-      const canvas = viewer.container.querySelector('canvas') as HTMLCanvasElement;
-      
-      if (!canvas) {
-        console.error('Canvas not found');
-        return;
-      }
-      
-      // Get the WebGL context and draw to a 2D canvas for capture
-      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-      
-      if (gl) {
-        // Read pixels from WebGL context
-        const width = canvas.width;
-        const height = canvas.height;
-        const pixels = new Uint8Array(width * height * 4);
-        gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+    // 1. Get current zoom
+    const currentZoom = viewer.getZoomLevel();
+
+    // 2. Setup listener BEFORE changing state
+    viewer.addEventListener('render', () => {
+        const canvas = viewer.container.querySelector('canvas') as HTMLCanvasElement;
         
-        // Create a 2D canvas to flip and draw the image
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = width;
-        tempCanvas.height = height;
-        const ctx = tempCanvas.getContext('2d');
-        
-        if (ctx) {
-          const imageData = ctx.createImageData(width, height);
-          
-          // Flip the image vertically (WebGL has inverted Y axis)
-          for (let y = 0; y < height; y++) {
-            for (let x = 0; x < width; x++) {
-              const srcIndex = (y * width + x) * 4;
-              const dstIndex = ((height - y - 1) * width + x) * 4;
-              imageData.data[dstIndex] = pixels[srcIndex];
-              imageData.data[dstIndex + 1] = pixels[srcIndex + 1];
-              imageData.data[dstIndex + 2] = pixels[srcIndex + 2];
-              imageData.data[dstIndex + 3] = pixels[srcIndex + 3];
-            }
-          }
-          
-          ctx.putImageData(imageData, 0, 0);
-          
-          // Create a data URL from the temporary canvas
-          const dataUrl = tempCanvas.toDataURL('image/png');
-          
-          // Show the modal with the screenshot
-          const modal = document.getElementById('screenshot-modal');
-          const screenshotImage = document.getElementById('screenshot-image') as HTMLImageElement;
-          
-          if (modal && screenshotImage) {
-            screenshotImage.src = dataUrl;
-            modal.classList.remove('hidden');
-          }
+        if (!canvas) {
+            console.error('Canvas not found');
+            viewer.zoom(currentZoom);
+            return;
         }
-      }
-    });
+        
+        const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
+        
+        if (gl) {
+            const width = canvas.width;
+            const height = canvas.height;
+            const pixels = new Uint8Array(width * height * 4);
+            // Capture synchronously
+            gl.readPixels(0, 0, width, height, gl.RGBA, gl.UNSIGNED_BYTE, pixels);
+            
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            const ctx = tempCanvas.getContext('2d');
+            
+            if (ctx) {
+                const imageData = ctx.createImageData(width, height);
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const srcIndex = (y * width + x) * 4;
+                        const dstIndex = ((height - y - 1) * width + x) * 4;
+                        imageData.data[dstIndex] = pixels[srcIndex];
+                        imageData.data[dstIndex + 1] = pixels[srcIndex + 1];
+                        imageData.data[dstIndex + 2] = pixels[srcIndex + 2];
+                        imageData.data[dstIndex + 3] = pixels[srcIndex + 3];
+                    }
+                }
+                ctx.putImageData(imageData, 0, 0);
+                const dataUrl = tempCanvas.toDataURL('image/png');
+                
+                const modal = document.getElementById('screenshot-modal');
+                const screenshotImage = document.getElementById('screenshot-image') as HTMLImageElement;
+                if (modal && screenshotImage) {
+                    screenshotImage.src = dataUrl;
+                    modal.classList.remove('hidden');
+                }
+            }
+        }
+        
+        // 4. Restore original zoom
+        viewer.zoom(currentZoom);
+    }, { once: true });
+
+    // 3. Zoom in (triggers the render which triggers the listener above)
+    viewer.zoom(50);
+    viewer.needsUpdate();
   });
 }
 

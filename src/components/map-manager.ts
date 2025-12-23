@@ -49,7 +49,14 @@ export class MapManager {
     this.radarElement.className = 'map-radar hidden';
     this.radarElement.innerHTML = `
       <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M50 50 L10 0 A 50 50 0 0 1 90 0 Z" fill="rgba(26, 58, 74, 0.3)" stroke="#1a3a4a" stroke-width="1.5" />
+        <defs>
+          <linearGradient id="radar-grad" x1="50" y1="50" x2="50" y2="2" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="1" />
+            <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.36" />
+          </linearGradient>
+        </defs>
+        <!-- 90 degree cone, Radius ~48, Center 50,50. Fits inside 100x100 without clipping -->
+        <path d="M50 50 L16 16 A 48 48 0 0 1 84 16 Z" fill="url(#radar-grad)" stroke="#504A47" stroke-width="1.18" />
       </svg>
     `;
     wrapper.appendChild(this.radarElement);
@@ -59,8 +66,13 @@ export class MapManager {
       const markerEl = document.createElement('div');
       markerEl.className = 'map-marker';
       markerEl.setAttribute('data-node-id', marker.nodeId);
-      markerEl.style.left = `${marker.x}%`;
-      markerEl.style.top = `${marker.y}%`;
+      markerEl.style.setProperty('--x-expanded', `${marker.x}%`);
+      markerEl.style.setProperty('--y-expanded', `${marker.y}%`);
+      markerEl.style.setProperty('--x-min', `${marker.minimizedX ?? marker.x}%`);
+      markerEl.style.setProperty('--y-min', `${marker.minimizedY ?? marker.y}%`);
+      // Default to minimized state
+      // markerEl.style.left = `${marker.x}%`; 
+      // markerEl.style.top = `${marker.y}%`;
       markerEl.title = marker.nodeId;
       
       markerEl.addEventListener('click', (e) => {
@@ -92,12 +104,15 @@ export class MapManager {
         m.classList.add('active');
         markerFound = true;
         
-        // Move radar to this marker
-        if (this.radarElement) {
-          this.radarElement.style.left = (m as HTMLElement).style.left;
-          this.radarElement.style.top = (m as HTMLElement).style.top;
-          this.radarElement.classList.remove('hidden');
-        }
+          // Move radar to this marker
+          if (this.radarElement) {
+            const el = m as HTMLElement;
+            this.radarElement.style.setProperty('--x-expanded', el.style.getPropertyValue('--x-expanded'));
+            this.radarElement.style.setProperty('--y-expanded', el.style.getPropertyValue('--y-expanded'));
+            this.radarElement.style.setProperty('--x-min', el.style.getPropertyValue('--x-min'));
+            this.radarElement.style.setProperty('--y-min', el.style.getPropertyValue('--y-min'));
+            this.radarElement.classList.remove('hidden');
+          }
       } else {
         m.classList.remove('active');
       }

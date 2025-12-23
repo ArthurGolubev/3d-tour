@@ -14,6 +14,8 @@ export interface MapMarker {
   nodeId: string;
   x: number; // percentage (0-100)
   y: number; // percentage (0-100)
+  minimizedX?: number; // percentage (0-100) for minimized state
+  minimizedY?: number; // percentage (0-100) for minimized state
   rotationOffset?: number; // radians
 }
 
@@ -49,10 +51,10 @@ export const locationGroups: LocationGroup[] = [
     icon: 'yard',
     map: {
           imageUrl: 'assets/yard/map.jpg',
-          horizontal: true,
+          horizontal: false,
           markers: [
-            { nodeId: 'yard-1', x: 72, y: 56, rotationOffset: 0.7 },
-            { nodeId: 'yard-2', x: 66, y: 56, rotationOffset: 0.7 },
+            { nodeId: 'yard-1', x: 55, y: 20, minimizedX: 55, minimizedY: 29, rotationOffset: -0.7 },
+            { nodeId: 'yard-2', x: 55, y: 28, minimizedX: 55, minimizedY: 34, rotationOffset: -0.7 },
             // { nodeId: 'yard-3', x: 57, y: 56, rotationOffset: 0.7 },
             // { nodeId: 'yard-4', x: 39, y: 33, rotationOffset: 1 },
           ],
